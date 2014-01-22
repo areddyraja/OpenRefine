@@ -52,6 +52,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.refine.cassandra.CassandraProjectManager2;
 import com.google.refine.commands.Command;
 import com.google.refine.importing.ImportingManager;
 import com.google.refine.io.FileProjectManager;
@@ -128,7 +129,7 @@ public class RefineServlet extends Butterfly {
         }
 
         s_dataDir = new File(data);
-        FileProjectManager.initialize(s_dataDir);
+        CassandraProjectManager2.initialize(s_dataDir);
         ImportingManager.initialize(this);
 
         service.scheduleWithFixedDelay(new AutoSaveTimerTask(), AUTOSAVE_PERIOD, 

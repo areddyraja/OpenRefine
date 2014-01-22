@@ -93,7 +93,7 @@ public class Project {
         history = new History(this);
     }
 
-    protected Project(long id) {
+    public Project(long id) {
         this.id = id;
         this.history = new History(this);
     }
