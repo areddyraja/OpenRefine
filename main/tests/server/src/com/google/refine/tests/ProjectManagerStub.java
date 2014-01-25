@@ -104,4 +104,11 @@ public class ProjectManagerStub extends ProjectManager {
         // empty
     }
 
+    @Override
+    public ProjectMetadata prepareCassandraMetaDataAndSave(long projectID, String keySpaceName, String tableName)
+            throws Exception {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

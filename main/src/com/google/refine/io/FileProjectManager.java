@@ -214,8 +214,9 @@ public class FileProjectManager extends ProjectManager {
         }
     }
 
+    
     @Override
-    protected void saveMetadata(ProjectMetadata metadata, long projectId) throws Exception {
+    public void saveMetadata(ProjectMetadata metadata, long projectId) throws Exception {
         File projectDir = getProjectDir(projectId);
         ProjectMetadataUtilities.save(metadata, projectDir);
     }
@@ -432,5 +433,12 @@ public class FileProjectManager extends ProjectManager {
     @Override
     public HistoryEntryManager getHistoryEntryManager(){
         return new FileHistoryEntryManager();
+    }
+
+    @Override
+    public ProjectMetadata prepareCassandraMetaDataAndSave(long projectID, String keySpaceName, String tableName)
+            throws Exception {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

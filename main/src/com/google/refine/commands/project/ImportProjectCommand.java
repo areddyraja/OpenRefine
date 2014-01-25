@@ -66,14 +66,22 @@ public class ImportProjectCommand extends Command {
 
         ProjectManager.singleton.setBusy(true);
         try {
+            boolean cassandra = true;
             Properties options = ParsingUtilities.parseUrlParameters(request);
 
             long projectID = Project.generateID();
             logger.info("Importing existing project using new ID {}", projectID);
 
             internalImport(request, options, projectID);
-
-            ProjectManager.singleton.loadProjectMetadata(projectID);
+           
+            if(cassandra) {
+                String keyspaceName = options.getProperty("keyspace_name");
+                String tableName = options.getProperty("table_name");
+                ProjectMetadata metaData = ProjectManager.singleton.prepareCassandraMetaDataAndSave(projectID, keyspaceName, tableName);
+                ProjectManager.singleton.saveMetadata(metaData, projectID);
+            }  else {
+                ProjectManager.singleton.loadProjectMetadata(projectID);
+            }
 
             ProjectMetadata pm = ProjectManager.singleton.getProjectMetadata(projectID);
             if (pm != null) {
@@ -83,7 +91,7 @@ public class ImportProjectCommand extends Command {
                         pm.setName(projectName);
                     }
                 }
-
+               
                 redirect(response, "/project?project=" + projectID);
             } else {
                 respondWithErrorPage(request, response, "Failed to import project. Reason unknown.", null);

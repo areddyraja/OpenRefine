@@ -111,9 +111,8 @@ public class CassandraProjectManager2 extends ProjectManager {
         ProjectMetadata metadata = null;
         synchronized (this) {
             if (cassandra) {
-                metadata = prepareCassandraMetaDataAndSave(projectID);
                 try {
-                    daoImpl.saveMetadata(metadata, projectID);
+                    metadata = loadCassandraProjectMetadata(projectID);
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -229,10 +228,18 @@ public class CassandraProjectManager2 extends ProjectManager {
     }
 
     @Override
-    protected void saveMetadata(ProjectMetadata metadata, long projectId)
+    public void saveMetadata(ProjectMetadata metadata, long projectId)
             throws Exception {
-        File projectDir = getProjectDir(projectId);
-        ProjectMetadataUtilities.save(metadata, projectDir);
+        boolean cassandra = true;
+        if(cassandra){
+            daoImpl.saveMetadata(metadata, projectId);
+            if (metadata != null) {
+                _projectsMetadata.put(projectId, metadata);
+            }
+        } else {
+            File projectDir = getProjectDir(projectId);
+            ProjectMetadataUtilities.save(metadata, projectDir);
+        }
     }
 
     @Override
@@ -474,7 +481,21 @@ public class CassandraProjectManager2 extends ProjectManager {
         return null;
     }
 
-    private ProjectMetadata prepareCassandraMetaDataAndSave(long projectID) {
+    public ProjectMetadata prepareCassandraMetaDataAndSave(long projectID, String keySpaceName, String tableName) {
+        ProjectMetadata metaData = new ProjectMetadata();
+        metaData.setName("PROJ_".concat(new Long(projectID).toString()));
+        metaData.setPassword("");
+        metaData.setEncoding("UTF-8");
+        metaData.setEncodingConfidence(0);
+        metaData.setkeyspaceName(keySpaceName);
+        metaData.setTableName(tableName);
+
+        // TODO Add Custom MetaData
+        // TODO add Preference
+        return metaData;
+    }
+    
+    public ProjectMetadata prepareCassandraMetaDataAndSave(long projectID) {
         ProjectMetadata metaData = new ProjectMetadata();
         metaData.setName("PROJ_".concat(new Long(projectID).toString()));
         metaData.setPassword("");
@@ -494,7 +515,6 @@ public class CassandraProjectManager2 extends ProjectManager {
         loadColumnsFromCassandra(project);
         loadRowsFromCassandra(project);
         
-        
         project.update();
 
         return project;
@@ -506,7 +526,8 @@ public class CassandraProjectManager2 extends ProjectManager {
 
         Session session = cassandraDb.connect("127.0.0.1");
         
-        ResultSet results = session.execute("SELECT * FROM demodb.datasample;");
+        ProjectMetadata metata = project.getMetadata();
+        ResultSet results = session.execute("SELECT * FROM " + metata.getkeyspaceName().toLowerCase() + "." + metata.getTableName() );
 
         List<com.datastax.driver.core.Row> rows = results.all();
 
@@ -519,15 +540,9 @@ public class CassandraProjectManager2 extends ProjectManager {
             // line = reader.readLine();
             com.datastax.driver.core.Row _row = iterator.next();
 
-            fields[0] = _row.getString(0);
-            fields[1] = _row.getString(1);
-            fields[2] = _row.getString(2);
-            fields[3] = _row.getString(3);
-            fields[4] = _row.getString(4);
-            fields[5] = _row.getString(5);
-            fields[6] = _row.getString(6);
-            fields[7] = _row.getString(7);
-            fields[8] = _row.getString(8);
+            for (int i = 0; i < maxCellCount; i++) {
+                fields[i] = _row.getString(i);
+            }
 
             project.rows.add(prepareRow(fields, project.columnModel.columns.size()));
             //Row row = Row.load(fields, pool);
@@ -556,8 +571,8 @@ public class CassandraProjectManager2 extends ProjectManager {
         CassandraDb cassandraDb = new CassandraDb();
 
         Session session = cassandraDb.connect("127.0.0.1");
-        
-        ResultSet results = session.execute("SELECT * FROM demodb.datasample;");
+        ProjectMetadata metata = project.getMetadata();
+        ResultSet results = session.execute("SELECT * FROM " + metata.getkeyspaceName().toLowerCase() + "." + metata.getTableName() );
         ColumnDefinitions columndef = results.getColumnDefinitions();
 
         // iterate through result set and get row

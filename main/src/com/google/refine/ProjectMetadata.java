@@ -60,6 +60,9 @@ public class ProjectMetadata implements Jsonizable {
 
     private String         _encoding;
     private int            _encodingConfidence;
+    private String         _keyspaceName;
+    private String         _tableName;
+    private String         _hostNames;
     
     private Map<String, Serializable>   _customMetadata = new HashMap<String, Serializable>();
     private PreferenceStore             _preferenceStore = new PreferenceStore();
@@ -262,5 +265,29 @@ public class ProjectMetadata implements Jsonizable {
             _customMetadata.put(key, value);
         }
         updateModified();
+    }
+
+    public String getkeyspaceName() {
+        return _keyspaceName;
+    }
+
+    public void setkeyspaceName(String _keyspaceName) {
+        this._keyspaceName = _keyspaceName;
+    }
+
+    public String getTableName() {
+        return _tableName;
+    }
+
+    public void setTableName(String _tableName) {
+        this._tableName = _tableName;
+    }
+
+    public String getHostNames() {
+        return _hostNames;
+    }
+
+    public void setHostNames(String _hostNames) {
+        this._hostNames = _hostNames;
     }
 }
